@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 rule_file = st.file_uploader(
     "Upload Rule File (CSV or Excel)",
     type=["csv", "xlsx"]
