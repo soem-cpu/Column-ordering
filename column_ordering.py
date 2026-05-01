@@ -63,13 +63,14 @@ if rule_file is not None and excel_file is not None:
     # ----------------------
     desired_order = rule_df['new_order'].tolist()
 
-    # Validate columns
-    missing_cols = [col for col in desired_order if col not in df.columns]
-
-    if missing_cols:
-        st.error(f"Missing columns in Excel file: {missing_cols}")
-    else:
-        reordered_df = df[desired_order]
+    # Reorder columns and allow missing columns
+    reordered_df = pd.DataFrame()
+    
+    for col in desired_order:
+        if col in df.columns:
+            reordered_df[col] = df[col]
+        else:
+            reordered_df[col] = ""
 
         st.success("Columns reordered successfully")
 
