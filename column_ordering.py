@@ -64,6 +64,10 @@ if rule_file is not None and excel_file is not None:
             excel_file,
             sheet_name=selected_data_sheet
         )
+        # Remove time from datetime columns
+        for col in df.columns:
+            if pd.api.types.is_datetime64_any_dtype(df[col]):
+                df[col] = df[col].dt.date
 
     except Exception as e:
         st.error(f"Error reading Excel file: {e}")
