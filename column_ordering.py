@@ -64,18 +64,6 @@ if rule_file is not None and excel_file is not None:
             excel_file,
             sheet_name=selected_data_sheet
         )
-        
-        # Remove time from datetime columns
-        for col in df.columns:
-        
-            try:
-                converted = pd.to_datetime(df[col], errors='coerce')
-        
-                if converted.notna().sum() > 0:
-                    df[col] = converted.dt.strftime('%Y-%m-%d')
-        
-            except:
-                pass
 
     except Exception as e:
         st.error(f"Error reading Excel file: {e}")
