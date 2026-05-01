@@ -1,11 +1,12 @@
 import streamlit as st
 import pandas as pd
+from io import BytesIO
+
 rule_file = st.file_uploader(
     "Upload Rule File (CSV or Excel)",
     type=["csv", "xlsx"]
 )
 
-# Upload excel file
 excel_file = st.file_uploader(
     "Upload Excel File",
     type=["xlsx"]
@@ -16,32 +17,46 @@ if rule_file is not None and excel_file is not None:
     # ----------------------
     # Load rule file sheets
     # ----------------------
-    if rule_file.name.endswith('.xlsx'):
-        rule_excel = pd.ExcelFile(rule_file)
-        rule_sheets = rule_excel.sheet_names
+    try:
+        if rule_file.name.endswith('.xlsx'):
+            rule_excel = pd.ExcelFile(rule_file)
+            rule_sheets = rule_excel.sheet_names
 
-        selected_rule_sheet = st.selectbox(
-            "Select Rule Sheet",
-            rule_sheets
-        )
+            selected_rule_sheet = st.selectbox(
+                "Select Rule Sheet",
+                rule_sheets
+            )
 
-        rule_df = pd.read_excel(rule_file, sheet_name=selected_rule_sheet)
+            rule_df = pd.read_excel(rule_file, sheet_name=selected_rule_sheet)
+        else:
+            rule_df = pd.read_csv(rule_file)
 
-    else:
-        rule_df = pd.read_csv(rule_file)
+        # Validate rule file has required column
+        if 'new_order' not in rule_df.columns:
+            st.error("Rule file must contain a 'new_order' column")
+            st.stop()
+
+    except Exception as e:
+        st.error(f"Error reading rule file: {e}")
+        st.stop()
 
     # ----------------------
     # Load uploaded Excel sheets
     # ----------------------
-    excel_data = pd.ExcelFile(excel_file)
-    excel_sheets = excel_data.sheet_names
+    try:
+        excel_data = pd.ExcelFile(excel_file)
+        excel_sheets = excel_data.sheet_names
 
-    selected_data_sheet = st.selectbox(
-        "Select Excel Sheet to Rearrange",
-        excel_sheets
-    )
+        selected_data_sheet = st.selectbox(
+            "Select Excel Sheet to Rearrange",
+            excel_sheets
+        )
 
-    df = pd.read_excel(excel_file, sheet_name=selected_data_sheet)
+        df = pd.read_excel(excel_file, sheet_name=selected_data_sheet)
+
+    except Exception as e:
+        st.error(f"Error reading Excel file: {e}")
+        st.stop()
 
     # ----------------------
     # Extract reorder rule
@@ -63,20 +78,18 @@ if rule_file is not None and excel_file is not None:
 
         st.dataframe(reordered_df)
 
-        # Download output
-        output_file = "reordered_output.xlsx"
-
-        with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
+        # Download output - use BytesIO instead of file
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
             reordered_df.to_excel(
                 writer,
                 sheet_name=selected_data_sheet,
                 index=False
             )
 
-        with open(output_file, "rb") as file:
-            st.download_button(
-                label="Download Reordered Excel",
-                data=file,
-                file_name="reordered_output.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
+        st.download_button(
+            label="Download Reordered Excel",
+            data=output.getvalue(),
+            file_name="reordered_output.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
