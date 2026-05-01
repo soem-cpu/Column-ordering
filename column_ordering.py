@@ -1,9 +1,4 @@
 import streamlit as st
-import pandas as pd
-
-st.title("Excel Column Reorder Tool")
-
-# Upload rule file
 rule_file = st.file_uploader(
     "Upload Rule File (CSV or Excel)",
     type=["csv", "xlsx"]
@@ -69,4 +64,18 @@ if rule_file is not None and excel_file is not None:
 
         # Download output
         output_file = "reordered_output.xlsx"
+
+        with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
+            reordered_df.to_excel(
+                writer,
+                sheet_name=selected_data_sheet,
+                index=False
+            )
+
+        with open(output_file, "rb") as file:
+            st.download_button(
+                label="Download Reordered Excel",
+                data=file,
+                file_name="reordered_output.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
