@@ -92,5 +92,6 @@ if rule_file is not None and excel_file is not None:
             label="Download Reordered Excel",
             data=output.getvalue(),
             file_name="reordered_output.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key="download_reordered_excel"
         )
